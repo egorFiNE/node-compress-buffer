@@ -1,0 +1,17 @@
+{
+  "name": "compress-buffer",
+  "description": "Single-step Buffer compression library for Node.js",
+	"homepage" : "http://egorfine.github.com/node-compress-buffer",
+	"bugs" : { "web" : "http://github.com/egorFiNE/node-compress-buffer/issues" },
+  "version": "0.1.0",
+  "author": "Egor Egorov",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/egorfine/node-compress-buffer.git"
+  },
+  "engine": [ "node >=0.4.0" ],
+	"main" : "./lib/compress-buffer",
+  "scripts": {
+    "install": "./build.sh"
+  }
+}
