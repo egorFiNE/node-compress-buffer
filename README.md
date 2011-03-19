@@ -24,6 +24,10 @@ compress() takes two arguments: the data (either a <code>String()</code> or a <c
 
 uncompress() takes a single argument: the data (either a <code>String()</code> or a <code>Buffer()</code>) and returns uncompressed <code>Buffer()</code> or <code>undefined</code> on error.
 
+## Installation
+
+	npm install .
+
 ## License
 
 See LICENSE file. Basically, it's a kind of "do-whatever-you-want-for-free" license.
