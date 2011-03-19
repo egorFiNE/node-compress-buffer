@@ -20,9 +20,9 @@ For the sake of the KISS principle. Most of the time you don't need a streaming 
 
 ## Options 
 
-compress() takes two arguments: the data (either a <code>String()</code> or a <code>Buffer()</code>) and optional compression level which must be within 1..9. It returns compressed <code>Buffer()</code> or <code>undefined</code> on error.
+<code>compress()</code> takes two arguments: the data (either a <code>String()</code> or a <code>Buffer()</code>) and optional compression level which must be within 1..9. It returns compressed <code>Buffer()</code> or <code>undefined</code> on error.
 
-uncompress() takes a single argument: the data (either a <code>String()</code> or a <code>Buffer()</code>) and returns uncompressed <code>Buffer()</code> or <code>undefined</code> on error.
+<code>uncompress()</code> takes a single argument: the data (either a <code>String()</code> or a <code>Buffer()</code>) and returns uncompressed <code>Buffer()</code> or <code>undefined</code> on error.
 
 ## Installation
 
