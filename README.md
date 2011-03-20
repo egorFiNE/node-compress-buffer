@@ -32,6 +32,12 @@ For the sake of the KISS principle. Most of the time you don't need a streaming 
 
 See LICENSE file. Basically, it's a kind of "do-whatever-you-want-for-free" license.
 
+
+## Thanks to 
+
+A lot of thanks for important suggestions goes to Konstantin Käfer who implemented a nice similar module node-zlib (https://github.com/kkaefer/node-zlib) earlier than me.
+
+
 ## Author
 
 Egor Egorov <me@egorfine.com>
