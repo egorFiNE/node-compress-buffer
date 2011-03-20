@@ -17,76 +17,13 @@
 // like a better number :) 
 #define MIN_BYTES 32 
 
-
-int compressMemory(char *bufferIn, char *bufferOut, size_t bytesIn, size_t *bytesOut, int compressionLevel) {
-	int err;
-	
-	z_stream strm;
-	strm.zalloc=0;
-	strm.zfree=0;
-	strm.next_in=(Bytef*) bufferIn;
-	strm.avail_in=bytesIn;
-	strm.next_out=(Bytef*) bufferOut;
-	strm.avail_out=*bytesOut;
-	
-	if ((uLong)strm.avail_out != *bytesOut) {
-		return Z_BUF_ERROR;
-	}
-
-	err=deflateInit2(&strm, compressionLevel, Z_DEFLATED,  16 + MAX_WBITS, 8, Z_DEFAULT_STRATEGY);
-	if (err != Z_OK) {
-		return err;
-	}
-
-	err=deflate(&strm, Z_FINISH);
-	if (err != Z_STREAM_END) {
-		deflateEnd(&strm);
-		return err == Z_OK ? Z_BUF_ERROR : err;
-	}
-	*bytesOut=strm.total_out;
-
-	return deflateEnd(&strm);
-}
+z_stream strmCompress;
+z_stream strmUncompress;
 
 // FIXME make uncompress cyclic so it eats not so much memory
-int uncompressMemory(char *source, char *dest, size_t sourceLen, size_t *bytesUncompressed) {
-	int err;
-
-	z_stream strm;
-	strm.zalloc=0;
-	strm.zfree=0;
-	strm.next_in=(Bytef*) source;
-	strm.avail_in=sourceLen;
-	strm.next_out=(Bytef*) dest;
-	strm.avail_out=*bytesUncompressed;
-	
-	if ((uLong)strm.avail_out != *bytesUncompressed) {
-		return Z_BUF_ERROR;
-	}
-
-	err=inflateInit2(&strm, 16 + MAX_WBITS);
-	
-	if (err != Z_OK) { 
-		return err;
-	}
-
-	err=inflate(&strm, Z_FINISH);
-	if (err != Z_STREAM_END) {
-		inflateEnd(&strm);
-		if (err == Z_NEED_DICT || (err == Z_BUF_ERROR && strm.avail_in == 0)) { 
-			return Z_DATA_ERROR;
-		}
-		return err;
-	}
-	*bytesUncompressed=strm.total_out;
-
-	return inflateEnd(&strm);
-}
-
 
 using namespace v8;
 using namespace node;
-
 
 Handle<Value> compress(const Arguments& args) {
 	HandleScope scope;
@@ -123,26 +60,35 @@ Handle<Value> compress(const Arguments& args) {
 		dataPointer=Buffer::Data(bufferIn);
 	}
 	
-	int compressionLevel = 5;
+	int compressionLevel = Z_DEFAULT_COMPRESSION;
 	if (args.Length() > 1) { 
 		compressionLevel = args[1]->IntegerValue();
 		if (compressionLevel <= 0 || compressionLevel > 9) {
-			compressionLevel = 5;
+			compressionLevel = Z_DEFAULT_COMPRESSION;
 		}
 	}
+	
+	deflateParams(&strmCompress, compressionLevel, Z_DEFAULT_STRATEGY);
 	
 	bytesCompressed=compressBound(bytesIn);
 	char *bufferOut=(char*) malloc(bytesCompressed);
 
-	int result = compressMemory(dataPointer, bufferOut, bytesIn, &bytesCompressed, compressionLevel);
-	if (result!=Z_OK) {
+	strmCompress.next_in=(Bytef*) dataPointer;
+	strmCompress.avail_in=bytesIn;
+	strmCompress.next_out=(Bytef*) bufferOut;
+	strmCompress.avail_out=bytesCompressed;
+	
+	if (deflate(&strmCompress, Z_FINISH) != Z_STREAM_END) {
+		deflateReset(&strmCompress);
 		if (shouldFreeDataPointer) { 
 			free(dataPointer);
 		}
-		free(bufferOut);
 		return Undefined();
 	}
-
+	
+	bytesCompressed=strmCompress.total_out;	
+	deflateReset(&strmCompress);
+	
 	Buffer *BufferOut=Buffer::New(bufferOut, bytesCompressed);
 	free(bufferOut);
 	
@@ -164,11 +110,19 @@ Handle<Value> uncompress(const Arguments &args) {
 	size_t bytesUncompressed=999*1024*1024; // it's about max size that V8 supports
 	char *bufferOut=(char*) malloc(bytesUncompressed);
 
-	int result=uncompressMemory(Buffer::Data(bufferIn), bufferOut, Buffer::Length(bufferIn), &bytesUncompressed);
-	if (result!=Z_OK) {
+	strmUncompress.next_in=(Bytef*) Buffer::Data(bufferIn);
+	strmUncompress.avail_in=Buffer::Length(bufferIn);
+	strmUncompress.next_out=(Bytef*) bufferOut;
+	strmUncompress.avail_out=bytesUncompressed;
+	
+	if (inflate(&strmUncompress, Z_FINISH) != Z_STREAM_END) {
+		inflateReset(&strmUncompress);
 		free(bufferOut);
 		return Undefined();
 	}
+	
+	bytesUncompressed=strmUncompress.total_out;
+	inflateReset(&strmUncompress);
 
 	Buffer *BufferOut=Buffer::New(bufferOut, bytesUncompressed);
 	free(bufferOut);
@@ -180,6 +134,17 @@ Handle<Value> uncompress(const Arguments &args) {
 
 extern "C" void
 init (Handle<Object> target) {
+	strmCompress.zalloc=Z_NULL;
+	strmCompress.zfree=Z_NULL;
+	strmCompress.opaque=Z_NULL;
+
+	strmUncompress.zalloc=Z_NULL;
+	strmUncompress.zfree=Z_NULL;
+	strmUncompress.opaque=Z_NULL;
+
+	deflateInit2(&strmCompress, Z_DEFAULT_COMPRESSION, Z_DEFLATED,  16 + MAX_WBITS, 8, Z_DEFAULT_STRATEGY);
+	inflateInit2(&strmUncompress, 16 + MAX_WBITS);
+	
 	NODE_SET_METHOD(target, "compress", compress);
 	NODE_SET_METHOD(target, "uncompress", uncompress);
 }
