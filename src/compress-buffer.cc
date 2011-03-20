@@ -84,72 +84,52 @@ int uncompressMemory(char *source, char *dest, size_t sourceLen, size_t *bytesUn
 using namespace v8;
 using namespace node;
 
-class NodeCompressBufferLL : ObjectWrap {
-	public:
 
-	static void Initialize(Handle<Object> target) {
-		Local<FunctionTemplate> t=FunctionTemplate::New(New);
+Handle<Value> compress(const Arguments& args) {
+	Local<Object> bufferIn=args[0]->ToObject();
+	int compressionLevel  = args[1]->IntegerValue();
 
-		t->InstanceTemplate()->SetInternalFieldCount(1);
+	size_t bytesIn=Buffer::Length(bufferIn);
 
-		NODE_SET_PROTOTYPE_METHOD(t, "compress", compress);
-		NODE_SET_PROTOTYPE_METHOD(t, "uncompress", uncompress);
+	size_t bytesCompressed=compressBound(bytesIn);
+	char *bufferOut=(char*) malloc(bytesCompressed);
 
-		target->Set(String::NewSymbol("NodeCompressBufferLL"), t->GetFunction());
-	}
-
-	static Handle<Value> New(const Arguments &args) {
-		NodeCompressBufferLL *c=new NodeCompressBufferLL();
-		c->Wrap(args.This());
-		return args.This();
-	}
-
-	static Handle<Value> compress(const Arguments &args) {
-		Local<Object> bufferIn=args[0]->ToObject();
-		int compressionLevel  = args[1]->IntegerValue();
-		
-		size_t bytesIn=Buffer::Length(bufferIn);
-		
-		size_t bytesCompressed=compressBound(bytesIn);
-		char *bufferOut=(char*) malloc(bytesCompressed);
-
-		int result = compressMemory(Buffer::Data(bufferIn), bufferOut, bytesIn, &bytesCompressed, compressionLevel);
-		if (result!=Z_OK) {
-			free(bufferOut);
-			return Undefined();
-		}
-		
-		Buffer *BufferOut=Buffer::New(bytesCompressed);
-		memcpy(Buffer::Data(BufferOut), bufferOut, bytesCompressed);
+	int result = compressMemory(Buffer::Data(bufferIn), bufferOut, bytesIn, &bytesCompressed, compressionLevel);
+	if (result!=Z_OK) {
 		free(bufferOut);
-		
-		HandleScope scope;
-		return scope.Close(BufferOut->handle_);
+		return Undefined();
 	}
+
+	Buffer *BufferOut=Buffer::New(bufferOut, bytesCompressed);
+	free(bufferOut);
+
+	HandleScope scope;
+	return scope.Close(BufferOut->handle_);
+}
 	
-	static Handle<Value> uncompress(const Arguments &args) {
-		Local<Object> bufferIn=args[0]->ToObject();
-		
-		size_t bytesUncompressed=999*1024*1024; // it's about max size that V8 supports
-		char *bufferOut=(char*) malloc(bytesUncompressed);
-		
-		int result=uncompressMemory(Buffer::Data(bufferIn), bufferOut, Buffer::Length(bufferIn), &bytesUncompressed);
-		if (result!=Z_OK) {
-			free(bufferOut);
-			return Undefined();
-		}
-		
-		Buffer *BufferOut=Buffer::New(bytesUncompressed);
-		memcpy(Buffer::Data(BufferOut), bufferOut, bytesUncompressed);
+
+Handle<Value> uncompress(const Arguments &args) {
+	Local<Object> bufferIn=args[0]->ToObject();
+
+	size_t bytesUncompressed=999*1024*1024; // it's about max size that V8 supports
+	char *bufferOut=(char*) malloc(bytesUncompressed);
+
+	int result=uncompressMemory(Buffer::Data(bufferIn), bufferOut, Buffer::Length(bufferIn), &bytesUncompressed);
+	if (result!=Z_OK) {
 		free(bufferOut);
-		
-		HandleScope scope;
-		return scope.Close(BufferOut->handle_);
+		return Undefined();
 	}
-};
+
+	Buffer *BufferOut=Buffer::New(bufferOut, bytesUncompressed);
+	free(bufferOut);
+
+	HandleScope scope;
+	return scope.Close(BufferOut->handle_);
+}
 
 
 extern "C" void
 init (Handle<Object> target) {
-	NodeCompressBufferLL::Initialize(target);
+	NODE_SET_METHOD(target, "compress", compress);
+	NODE_SET_METHOD(target, "uncompress", uncompress);
 }
