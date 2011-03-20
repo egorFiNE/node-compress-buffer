@@ -13,7 +13,10 @@
 #include <malloc/malloc.h>
 #endif
 
-// FIXME make uncompress cyclic so it eats not so much memory
+// we don't compress less than that. Actually, zlib refuses to compress less than 18 bytes, but 32 looks
+// like a better number :) 
+#define MIN_BYTES 32 
+
 
 int compressMemory(char *bufferIn, char *bufferOut, size_t bytesIn, size_t *bytesOut, int compressionLevel) {
 	int err;
@@ -45,7 +48,7 @@ int compressMemory(char *bufferIn, char *bufferOut, size_t bytesIn, size_t *byte
 	return deflateEnd(&strm);
 }
 
-
+// FIXME make uncompress cyclic so it eats not so much memory
 int uncompressMemory(char *source, char *dest, size_t sourceLen, size_t *bytesUncompressed) {
 	int err;
 
@@ -86,29 +89,76 @@ using namespace node;
 
 
 Handle<Value> compress(const Arguments& args) {
-	Local<Object> bufferIn=args[0]->ToObject();
-	int compressionLevel  = args[1]->IntegerValue();
-
-	size_t bytesIn=Buffer::Length(bufferIn);
-
-	size_t bytesCompressed=compressBound(bytesIn);
+	HandleScope scope;
+	size_t bytesIn=0;
+	size_t bytesCompressed=0;
+	char *dataPointer=NULL;
+	int shouldFreeDataPointer=0;
+	
+	if (args.Length() < 1) { 
+		return Undefined();
+	}
+	
+	if (args[0]->IsString()) {
+		String::AsciiValue string(args[0]->ToString());
+		bytesIn = strlen(*string);
+		
+		if (bytesIn<=MIN_BYTES) {
+			return scope.Close(args[0]);
+		}
+		
+		// FIXME why do I have to copy data, why just this doesn't work: dataPointer = (char *) *string ? 
+		dataPointer = (char*)malloc(bytesIn);
+		strncpy(dataPointer, *string, bytesIn);
+		shouldFreeDataPointer=1;
+		
+	} else if (Buffer::HasInstance(args[0])) {
+		Local<Object> bufferIn=args[0]->ToObject();
+		bytesIn=Buffer::Length(bufferIn);
+		
+		if (bytesIn<=MIN_BYTES) {
+			return scope.Close(args[0]);
+		}
+		
+		dataPointer=Buffer::Data(bufferIn);
+	}
+	
+	int compressionLevel = 5;
+	if (args.Length() > 1) { 
+		compressionLevel = args[1]->IntegerValue();
+		if (compressionLevel <= 0 || compressionLevel > 9) {
+			compressionLevel = 5;
+		}
+	}
+	
+	bytesCompressed=compressBound(bytesIn);
 	char *bufferOut=(char*) malloc(bytesCompressed);
 
-	int result = compressMemory(Buffer::Data(bufferIn), bufferOut, bytesIn, &bytesCompressed, compressionLevel);
+	int result = compressMemory(dataPointer, bufferOut, bytesIn, &bytesCompressed, compressionLevel);
 	if (result!=Z_OK) {
+		if (shouldFreeDataPointer) { 
+			free(dataPointer);
+		}
 		free(bufferOut);
 		return Undefined();
 	}
 
 	Buffer *BufferOut=Buffer::New(bufferOut, bytesCompressed);
 	free(bufferOut);
+	
+	if (shouldFreeDataPointer) { 
+		free(dataPointer);
+	}
 
-	HandleScope scope;
 	return scope.Close(BufferOut->handle_);
 }
 	
 
 Handle<Value> uncompress(const Arguments &args) {
+	if (args.Length() < 1 || !Buffer::HasInstance(args[0])) {
+		return Undefined();
+	}
+	
 	Local<Object> bufferIn=args[0]->ToObject();
 
 	size_t bytesUncompressed=999*1024*1024; // it's about max size that V8 supports

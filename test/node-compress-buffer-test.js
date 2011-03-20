@@ -55,6 +55,15 @@ exports['compress string']= function(test) {
 	test.done();
 }
 
+exports['compress short']= function(test) {
+	test.expect(2);
+	var buffer = new Buffer("too short");
+	var compressed = compress(buffer);
+	test.equal(compressed,buffer);
+	test.equal(compressed.length,buffer.length);
+	test.done();
+}
+
 exports['errors']= function(test) {
 	test.expect(2);
 	var compressed = compress("");
