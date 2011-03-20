@@ -1,0 +1,9 @@
+0.2.0: March 20, 2011
+* single initialization of strm (a few times faster for multiple compressions)
+* got rid of C++ object, make methods direct
+* got rid of JS Class layer, call C++ functions directly
+* move Strings/Buffers logic to C++ 
+* thanks to Konstantin Käfer!
+
+0.1.0: March 20, 2011
+* initial release
