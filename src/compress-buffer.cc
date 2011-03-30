@@ -62,16 +62,16 @@ Handle<Value> compress(const Arguments& args) {
 		dataPointer=Buffer::Data(bufferIn);
 	}
 	
-	int compressionLevel = czstream::compression;
+	int compressionLevel = zstream::compression;
 	if (args.Length() > 1) { 
 		compressionLevel = args[1]->IntegerValue();
 		if (compressionLevel <= 0 || compressionLevel > 9) {
-			compressionLevel = czstream::compression;
+			compressionLevel = zstream::compression;
 		}
 	}
 	
     z_streamp stream = strmCompress;
-	deflateParams(stream, compressionLevel, czstream::strategy);
+	deflateParams(stream, compressionLevel, zstream::strategy);
 	
 	bytesCompressed=compressBound(bytesIn);
 	char *bufferOut=(char*) malloc(bytesCompressed);
@@ -84,7 +84,7 @@ Handle<Value> compress(const Arguments& args) {
 	if (deflate(stream, Z_FINISH) != Z_STREAM_END) {
 		deflateReset(stream);
 		if (dataPointer) {
-			free(dataPointer);
+			free(dataPointer), dataPointer = NULL;
 		}
 		return Undefined();
 	}
@@ -96,7 +96,7 @@ Handle<Value> compress(const Arguments& args) {
 	free(bufferOut);
 	
 	if (dataPointer) {
-		free(dataPointer);
+		free(dataPointer), dataPointer = NULL;
 	}
 
 	return scope.Close(BufferOut->handle_);
