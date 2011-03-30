@@ -36,6 +36,7 @@ Handle<Value> compress(const Arguments& args) {
 	size_t bytesIn=0;
 	size_t bytesCompressed=0;
 	char *dataPointer=NULL;
+	bool shouldFreeDataPointer=false;
 	
 	if (args.Length() < 1) { 
 		return Undefined();
@@ -49,7 +50,7 @@ Handle<Value> compress(const Arguments& args) {
 			return scope.Close(args[0]);
 		}
 		
-		dataPointer = strdup(*string);
+		dataPointer = strdup(*string), shouldFreeDataPointer = true;
 		
 	} else if (Buffer::HasInstance(args[0])) {
 		Local<Object> bufferIn=args[0]->ToObject();
@@ -83,7 +84,7 @@ Handle<Value> compress(const Arguments& args) {
 	
 	if (deflate(stream, Z_FINISH) != Z_STREAM_END) {
 		deflateReset(stream);
-		if (dataPointer) {
+		if (shouldFreeDataPointer) {
 			free(dataPointer), dataPointer = NULL;
 		}
 		return Undefined();
@@ -95,7 +96,7 @@ Handle<Value> compress(const Arguments& args) {
 	Buffer *BufferOut=Buffer::New(bufferOut, bytesCompressed);
 	free(bufferOut);
 	
-	if (dataPointer) {
+	if (shouldFreeDataPointer) {
 		free(dataPointer), dataPointer = NULL;
 	}
 
