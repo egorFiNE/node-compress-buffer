@@ -3,8 +3,7 @@
 
 #include <zlib.h>
 
-namespace zstream
-{
+namespace zstream {
 
 enum {compression =   Z_DEFAULT_COMPRESSION};
 enum {algorithm   =   Z_DEFLATED};
@@ -12,25 +11,23 @@ enum {strategy    =   Z_DEFAULT_STRATEGY};
 enum {wbits       =   16 + MAX_WBITS};
 enum {memlevel    =   8L};
 
-template<typename Stream>
-class CZStream
-{
+template<typename Stream> class CZStream {
 public:
-    CZStream()
-    {
-        stream_.zalloc = Z_NULL;
-        stream_.zfree  = Z_NULL;
-        stream_.opaque = Z_NULL;
-    }
+	CZStream() {
+		stream_.zalloc = Z_NULL;
+		stream_.zfree  = Z_NULL;
+		stream_.opaque = Z_NULL;
+	}
 
-    ~CZStream() 
-    {
-    }
+	~CZStream() {
+	}
 
-    operator Stream*() const { return const_cast<Stream*>(&stream_); }
+	operator Stream*() const { 
+		return const_cast<Stream*>(&stream_); 
+	}
 
 private:
-    Stream stream_;
+	Stream stream_;
 };
 
 } //namespace zstream

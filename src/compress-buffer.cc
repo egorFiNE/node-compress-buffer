@@ -26,9 +26,8 @@ zstream::CZStream<z_stream> strmUncompress;
 using namespace v8;
 using namespace node;
 
-Handle<Value> ThrowNodeError(const char* what = NULL)
-{
-    return ThrowException(Exception::Error(String::New(what)));
+Handle<Value> ThrowNodeError(const char* what = NULL) {
+	return ThrowException(Exception::Error(String::New(what)));
 }
 
 Handle<Value> compress(const Arguments& args) {
@@ -50,7 +49,8 @@ Handle<Value> compress(const Arguments& args) {
 			return scope.Close(args[0]);
 		}
 		
-		dataPointer = strdup(*string), shouldFreeDataPointer = true;
+		dataPointer = strdup(*string); 
+		shouldFreeDataPointer = true;
 		
 	} else if (Buffer::HasInstance(args[0])) {
 		Local<Object> bufferIn=args[0]->ToObject();
@@ -71,7 +71,7 @@ Handle<Value> compress(const Arguments& args) {
 		}
 	}
 	
-    z_streamp stream = strmCompress;
+	z_streamp stream = strmCompress;
 	deflateParams(stream, compressionLevel, zstream::strategy);
 	
 	bytesCompressed=compressBound(bytesIn);
@@ -85,7 +85,8 @@ Handle<Value> compress(const Arguments& args) {
 	if (deflate(stream, Z_FINISH) != Z_STREAM_END) {
 		deflateReset(stream);
 		if (shouldFreeDataPointer) {
-			free(dataPointer), dataPointer = NULL;
+			free(dataPointer); 
+			dataPointer = NULL;
 		}
 		return Undefined();
 	}
@@ -114,7 +115,7 @@ Handle<Value> uncompress(const Arguments &args) {
 	size_t bytesUncompressed=999*1024*1024; // it's about max size that V8 supports
 	char *bufferOut=(char*) malloc(bytesUncompressed);
 
-    z_streamp stream = strmUncompress;
+ 	z_streamp stream = strmUncompress;
 	stream->next_in=(Bytef*) Buffer::Data(bufferIn);
 	stream->avail_in=Buffer::Length(bufferIn);
 	stream->next_out=(Bytef*) bufferOut;
@@ -137,18 +138,15 @@ Handle<Value> uncompress(const Arguments &args) {
 }
 
 extern "C" void
-init (Handle<Object> target) 
-{
-    int rcd = deflateInit2(strmCompress, zstream::compression, zstream::algorithm,  
-                           zstream::wbits, zstream::memlevel,  zstream::strategy);
-    int rci = inflateInit2(strmUncompress, zstream::wbits);
+init (Handle<Object> target) {
+	int rcd = deflateInit2(strmCompress, zstream::compression, zstream::algorithm,  
+		zstream::wbits, zstream::memlevel,  zstream::strategy);
+	int rci = inflateInit2(strmUncompress, zstream::wbits);
 
-    if ( rcd != Z_OK || rci != Z_OK)
-    {
-        ThrowNodeError("zlib initialization error.");
-    }
+	if (rcd != Z_OK || rci != Z_OK) {
+		ThrowNodeError("zlib initialization error.");
+	}
 
-    NODE_SET_METHOD(target, "compress", compress);
-    NODE_SET_METHOD(target, "uncompress", uncompress);
+	NODE_SET_METHOD(target, "compress", compress);
+	NODE_SET_METHOD(target, "uncompress", uncompress);
 }
-
