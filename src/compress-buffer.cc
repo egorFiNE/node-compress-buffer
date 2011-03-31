@@ -12,14 +12,16 @@
 #include <malloc/malloc.h>
 #endif
 #include <zlib.h>
-#include "czstream.h"
 
 // we don't compress less than that. Actually, zlib refuses to compress less than 18 bytes, but 32 looks
 // like a better number :) 
 #define MIN_BYTES 32 
 
-zstream::CZStream<z_stream> strmCompress;
-zstream::CZStream<z_stream> strmUncompress;
+// zlib magic something
+#define WBITS 16+MAX_WBITS
+
+z_stream strmCompress;
+z_stream strmUncompress;
 
 // FIXME make uncompress cyclic so it eats not so much memory
 
@@ -63,27 +65,26 @@ Handle<Value> compress(const Arguments& args) {
 		dataPointer=Buffer::Data(bufferIn);
 	}
 	
-	int compressionLevel = zstream::compression;
+	int compressionLevel = Z_DEFAULT_COMPRESSION;
 	if (args.Length() > 1) { 
 		compressionLevel = args[1]->IntegerValue();
 		if (compressionLevel <= 0 || compressionLevel > 9) {
-			compressionLevel = zstream::compression;
+			compressionLevel = Z_DEFAULT_COMPRESSION;
 		}
 	}
 	
-	z_streamp stream = strmCompress;
-	deflateParams(stream, compressionLevel, zstream::strategy);
+	deflateParams(&strmCompress, compressionLevel, Z_DEFAULT_STRATEGY);
 	
 	bytesCompressed=compressBound(bytesIn);
 	char *bufferOut=(char*) malloc(bytesCompressed);
 
-	stream->next_in=(Bytef*) dataPointer;
-	stream->avail_in=bytesIn;
-	stream->next_out=(Bytef*) bufferOut;
-	stream->avail_out=bytesCompressed;
+	strmCompress.next_in=(Bytef*) dataPointer;
+	strmCompress.avail_in=bytesIn;
+	strmCompress.next_out=(Bytef*) bufferOut;
+	strmCompress.avail_out=bytesCompressed;
 	
-	if (deflate(stream, Z_FINISH) != Z_STREAM_END) {
-		deflateReset(stream);
+	if (deflate(&strmCompress, Z_FINISH) != Z_STREAM_END) {
+		deflateReset(&strmCompress);
 		if (shouldFreeDataPointer) {
 			free(dataPointer); 
 			dataPointer = NULL;
@@ -91,14 +92,15 @@ Handle<Value> compress(const Arguments& args) {
 		return Undefined();
 	}
 	
-	bytesCompressed=stream->total_out;
-	deflateReset(stream);
+	bytesCompressed=strmCompress.total_out;
+	deflateReset(&strmCompress);
 	
 	Buffer *BufferOut=Buffer::New(bufferOut, bytesCompressed);
 	free(bufferOut);
 	
 	if (shouldFreeDataPointer) {
-		free(dataPointer), dataPointer = NULL;
+		free(dataPointer); 
+		dataPointer = NULL;
 	}
 
 	return scope.Close(BufferOut->handle_);
@@ -115,20 +117,19 @@ Handle<Value> uncompress(const Arguments &args) {
 	size_t bytesUncompressed=999*1024*1024; // it's about max size that V8 supports
 	char *bufferOut=(char*) malloc(bytesUncompressed);
 
- 	z_streamp stream = strmUncompress;
-	stream->next_in=(Bytef*) Buffer::Data(bufferIn);
-	stream->avail_in=Buffer::Length(bufferIn);
-	stream->next_out=(Bytef*) bufferOut;
-	stream->avail_out=bytesUncompressed;
+	strmUncompress.next_in=(Bytef*) Buffer::Data(bufferIn);
+	strmUncompress.avail_in=Buffer::Length(bufferIn);
+	strmUncompress.next_out=(Bytef*) bufferOut;
+	strmUncompress.avail_out=bytesUncompressed;
 	
-	if (inflate(stream, Z_FINISH) != Z_STREAM_END) {
-		inflateReset(stream);
+	if (inflate(&strmUncompress, Z_FINISH) != Z_STREAM_END) {
+		inflateReset(&strmUncompress);
 		free(bufferOut);
 		return Undefined();
 	}
 	
-	bytesUncompressed=stream->total_out;
-	inflateReset(stream);
+	bytesUncompressed=strmUncompress.total_out;
+	inflateReset(&strmUncompress);
 
 	Buffer *BufferOut=Buffer::New(bufferOut, bytesUncompressed);
 	free(bufferOut);
@@ -139,9 +140,17 @@ Handle<Value> uncompress(const Arguments &args) {
 
 extern "C" void
 init (Handle<Object> target) {
-	int rcd = deflateInit2(strmCompress, zstream::compression, zstream::algorithm,  
-		zstream::wbits, zstream::memlevel,  zstream::strategy);
-	int rci = inflateInit2(strmUncompress, zstream::wbits);
+	strmCompress.zalloc=Z_NULL;
+	strmCompress.zfree=Z_NULL;
+	strmCompress.opaque=Z_NULL;
+
+	strmUncompress.zalloc=Z_NULL;
+	strmUncompress.zfree=Z_NULL;
+	strmUncompress.opaque=Z_NULL;
+
+	int rcd = deflateInit2(&strmCompress, Z_DEFAULT_COMPRESSION, Z_DEFLATED,  
+		WBITS, 8L,  Z_DEFAULT_STRATEGY);
+	int rci = inflateInit2(&strmUncompress, WBITS);
 
 	if (rcd != Z_OK || rci != Z_OK) {
 		ThrowNodeError("zlib initialization error.");
