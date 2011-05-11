@@ -4,6 +4,7 @@ A single-step Buffer compression library for Node.js.
 
 ## Synopsis
 
+```javascript
 	compress = require('compress-buffer').compress;
 	uncompress = require('compress-buffer').uncompress;
 	
@@ -13,6 +14,7 @@ A single-step Buffer compression library for Node.js.
 	var uncompressed = uncompress(compressed);
 
 	uncompressed == rawData // true!
+```
 
 ## Why? 
 
@@ -25,6 +27,10 @@ For the sake of the KISS principle. Most of the time you don't need a streaming 
 <code>uncompress()</code> takes a single argument: the data (either a <code>String()</code> or a <code>Buffer()</code>) and returns uncompressed <code>Buffer()</code> or <code>undefined</code> on error.
 
 ## Installation
+
+	npm install compress-buffer
+
+or
 
 	npm install .
 
