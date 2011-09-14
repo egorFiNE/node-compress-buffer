@@ -1,3 +1,6 @@
+0.3.1: September 14, 2011
+* node 0.5.x support
+
 0.2.0: March 20, 2011
 * single initialization of strm (a few times faster for multiple compressions)
 * got rid of C++ object, make methods direct

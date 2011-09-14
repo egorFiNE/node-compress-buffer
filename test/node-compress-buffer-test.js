@@ -1,11 +1,10 @@
 /* node-compress-buffer (C) 2011 Egor Egorov <me@egorfine.com>  */
 
-require.paths.unshift('../lib');
-sys = require('sys');
+util = require('util');
 fs = require('fs');
 crypto=require('crypto');
-compress = require('compress-buffer').compress;
-uncompress = require('compress-buffer').uncompress;
+compress = require('../lib/compress-buffer').compress;
+uncompress = require('../lib/compress-buffer').uncompress;
 
 function md5(data) {
 	var md5=crypto.createHash('md5');
@@ -36,7 +35,7 @@ exports['basic uncompress']= function(test) {
 
 exports['compress with compression levels']= function(test) {
 	test.expect(1);
-	var uncompressedBuffer = fs.readFileSync("node-compress-buffer-test.js");
+	var uncompressedBuffer = fs.readFileSync(__dirname+"/node-compress-buffer-test.js");
 	
 	var compressed1 = compress(uncompressedBuffer, 1);
 	var compressed9 = compress(uncompressedBuffer, 9);
