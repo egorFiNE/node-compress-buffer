@@ -4,7 +4,7 @@ from os.path import exists
 
 srcdir = "."
 blddir = "build"
-VERSION = "0.2.0"
+VERSION = "0.3.2"
 
 def set_options(opt):
   opt.tool_options("compiler_cxx")
@@ -17,12 +17,7 @@ def configure(conf):
 
   conf.env.DEFINES = []
   conf.env.USELIB = []
-
-  if Options.options.debug:
-    conf.env.DEFINES += [ 'DEBUG' ]
-    conf.env.CXXFLAGS = [ '-O0', '-g3' ]
-  else:
-    conf.env.CXXFLAGS = [ '-O3' ]
+  conf.env.CXXFLAGS = [ '-O3' ]
 
 
 def build(bld):

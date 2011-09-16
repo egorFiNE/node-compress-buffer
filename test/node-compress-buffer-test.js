@@ -3,8 +3,8 @@
 util = require('util');
 fs = require('fs');
 crypto=require('crypto');
-compress = require('../lib/compress-buffer').compress;
-uncompress = require('../lib/compress-buffer').uncompress;
+compress = require('../index').compress;
+uncompress = require('../index').uncompress;
 
 function md5(data) {
 	var md5=crypto.createHash('md5');
