@@ -1,3 +1,6 @@
+0.4.0: September 18, 2011
+* fixed major bug with the compression of extremely small buffers
+
 0.3.2: September 17, 2011
 * build system fixed
 

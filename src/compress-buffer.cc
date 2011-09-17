@@ -13,10 +13,6 @@
 #endif
 #include <zlib.h>
 
-// we don't compress less than that. Actually, zlib refuses to compress less than 18 bytes, but 32 looks
-// like a better number :) 
-#define MIN_BYTES 32 
-
 // zlib magic something
 #define WBITS 16+MAX_WBITS
 
@@ -46,21 +42,13 @@ Handle<Value> compress(const Arguments& args) {
 	if (args[0]->IsString()) {
 		String::AsciiValue string(args[0]->ToString());
 		bytesIn = string.length();
-		
-		if (bytesIn<=MIN_BYTES) {
-			return scope.Close(args[0]);
-		}
-		
+
 		dataPointer = strdup(*string); 
 		shouldFreeDataPointer = true;
 		
 	} else if (Buffer::HasInstance(args[0])) {
 		Local<Object> bufferIn=args[0]->ToObject();
 		bytesIn=Buffer::Length(bufferIn);
-		
-		if (bytesIn<=MIN_BYTES) {
-			return scope.Close(args[0]);
-		}
 		
 		dataPointer=Buffer::Data(bufferIn);
 	}
@@ -76,6 +64,13 @@ Handle<Value> compress(const Arguments& args) {
 	deflateParams(&strmCompress, compressionLevel, Z_DEFAULT_STRATEGY);
 	
 	bytesCompressed=compressBound(bytesIn);
+
+	// compressBound mistakes when estimating extremely small data blocks (like few bytes), so 
+	// here is the stub. Otherwise smaller buffers (like 10 bytes) would not compress.
+	if (bytesCompressed<1024) {
+		bytesCompressed=1024;
+	}
+
 	char *bufferOut=(char*) malloc(bytesCompressed);
 
 	strmCompress.next_in=(Bytef*) dataPointer;
