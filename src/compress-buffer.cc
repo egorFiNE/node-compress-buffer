@@ -37,22 +37,26 @@ Handle<Value> compress(const Arguments& args) {
 	
 	if (args.Length() < 1) { 
 		return Undefined();
-	}
-	
-	if (args[0]->IsString()) {
-		String::AsciiValue string(args[0]->ToString());
-		bytesIn = string.length();
 
-		dataPointer = strdup(*string); 
-		shouldFreeDataPointer = true;
-		
 	} else if (Buffer::HasInstance(args[0])) {
 		Local<Object> bufferIn=args[0]->ToObject();
 		bytesIn=Buffer::Length(bufferIn);
 		
 		dataPointer=Buffer::Data(bufferIn);
-	}
-	
+
+	} else if (args[0]->IsString()) {
+#ifdef SUPPORT_STRINGS
+		String::AsciiValue string(args[0]->ToString());
+		bytesIn = string.length();
+
+		dataPointer = strdup(*string); 
+		shouldFreeDataPointer = true;
+#else 
+		ThrowNodeError("First argument must be a Buffer");
+		return Undefined();
+#endif
+	} 
+
 	int compressionLevel = Z_DEFAULT_COMPRESSION;
 	if (args.Length() > 1) { 
 		compressionLevel = args[1]->IntegerValue();
@@ -103,7 +107,12 @@ Handle<Value> compress(const Arguments& args) {
 	
 
 Handle<Value> uncompress(const Arguments &args) {
-	if (args.Length() < 1 || !Buffer::HasInstance(args[0])) {
+	if (args.Length() < 1) {
+		return Undefined();
+	}
+	
+	if (!Buffer::HasInstance(args[0])) {
+		ThrowNodeError("First argument must be a Buffer");
 		return Undefined();
 	}
 	
@@ -149,6 +158,7 @@ init (Handle<Object> target) {
 
 	if (rcd != Z_OK || rci != Z_OK) {
 		ThrowNodeError("zlib initialization error.");
+		return;
 	}
 
 	NODE_SET_METHOD(target, "compress", compress);

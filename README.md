@@ -22,9 +22,9 @@ For the sake of the KISS principle. Most of the time you don't need a streaming 
 
 ## Options 
 
-<code>compress()</code> takes two arguments: the data (either a <code>String()</code> or a <code>Buffer()</code>) and optional compression level which must be within 1..9. It returns compressed <code>Buffer()</code> or <code>undefined</code> on error.
+<code>compress()</code> takes two arguments: the data (must be a <code>Buffer()</code>) and optional compression level which must be within 1..9. It returns compressed <code>Buffer()</code> or <code>undefined</code> on error.
 
-<code>uncompress()</code> takes a single argument: the data (either a <code>String()</code> or a <code>Buffer()</code>) and returns uncompressed <code>Buffer()</code> or <code>undefined</code> on error.
+<code>uncompress()</code> takes a single argument: the data (must be a <code>Buffer()</code>) and returns uncompressed <code>Buffer()</code> or <code>undefined</code> on error.
 
 ## Installation
 
@@ -33,6 +33,16 @@ For the sake of the KISS principle. Most of the time you don't need a streaming 
 or
 
 	npm install .
+
+## Upgrade notice
+
+In version 0.4.1 I removed support for strings compression. It is not possible to correctly determine the encoding of an input string and different encoding yields different results. So for the sake of consistency and reliability this was removed. 
+
+Use the following instead: 
+
+```javascript
+	var compressedBuffer = compress(new Buffer("my string"));
+```
 
 ## License
 

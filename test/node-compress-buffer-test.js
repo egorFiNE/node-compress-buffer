@@ -44,18 +44,22 @@ exports['compress with compression levels']= function(test) {
 	test.done();
 }
 
-exports['compress string']= function(test) {
+exports['string exceptions']= function(test) {
 	test.expect(2);
-	var buffer = new Buffer(loremIpsum);
-	var compressed1 = compress(buffer);
-	var compressed2 = compress(loremIpsum);
-	test.equal(compressed1.length,compressed2.length);
-	test.equal(md5(compressed1), md5(compressed2));
+
+	test.throws(function() {
+		compress(loremIpsum);
+	});
+
+	test.throws(function() {
+		uncompress(loremIpsum);
+	});
+
 	test.done();
 }
 
 exports['compress short']= function(test) {
-	test.expect(3);
+	test.expect(2);
 	var buffer, compressed;
 
 	buffer = new Buffer("too short");
@@ -63,19 +67,15 @@ exports['compress short']= function(test) {
 	test.notEqual(compressed,buffer);
 	test.notEqual(compressed.length,buffer.length);
 
-	buffer = "short string";
-	compressed = compress(buffer);
-	test.notEqual(compressed.length,buffer.length);
-
 	test.done();
 }
 
 exports['errors']= function(test) {
 	test.expect(2);
-	var compressed = compress("");
+	var compressed = compress(new Buffer(""));
 	test.ok(compressed.length>=0);
 	
-	var uncompressed = uncompress(" sfsdcfgdfgsdgfdsgdgdsgdfgsdfgsdfgdfgfsfd ");
+	var uncompressed = uncompress(new Buffer(" sfsdcfgdfgsdgfdsgdgdsgdfgsdfgsdfgdfgfsfd "));
 	test.ok(!uncompressed);
 	
 	test.done();

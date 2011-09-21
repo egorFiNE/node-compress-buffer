@@ -1,3 +1,6 @@
+0.4.1: September 21, 2011
+* support for string compression was eliminated. It's just not right. Want it back? See the source code. 
+
 0.4.0: September 18, 2011
 * fixed major bug with the compression of extremely small buffers
 
