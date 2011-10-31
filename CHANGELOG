@@ -1,3 +1,6 @@
+0.4.2: October 31, 2011
+* remove include of node_events.h (depricated)
+
 0.4.1: September 21, 2011
 * support for string compression was eliminated. It's just not right. Want it back? See the source code. 
 
@@ -19,3 +22,5 @@
 
 0.1.0: March 20, 2011
 * initial release
+
+
