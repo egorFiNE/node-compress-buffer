@@ -36,25 +36,17 @@ Handle<Value> compress(const Arguments& args) {
 	
 	if (args.Length() < 1) { 
 		return Undefined();
-
-	} else if (Buffer::HasInstance(args[0])) {
-		Local<Object> bufferIn=args[0]->ToObject();
-		bytesIn=Buffer::Length(bufferIn);
-		
-		dataPointer=Buffer::Data(bufferIn);
-
-	} else if (args[0]->IsString()) {
-#ifdef SUPPORT_STRINGS
-		String::AsciiValue string(args[0]->ToString());
-		bytesIn = string.length();
-
-		dataPointer = strdup(*string); 
-		shouldFreeDataPointer = true;
-#else 
+	}
+	
+	if (!Buffer::HasInstance(args[0])) {
 		ThrowNodeError("First argument must be a Buffer");
 		return Undefined();
-#endif
 	} 
+	
+	Local<Object> bufferIn=args[0]->ToObject();
+	bytesIn=Buffer::Length(bufferIn);
+
+	dataPointer=Buffer::Data(bufferIn);
 
 	int compressionLevel = Z_DEFAULT_COMPRESSION;
 	if (args.Length() > 1) { 
