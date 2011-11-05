@@ -1,3 +1,6 @@
+0.5.0: November 5, 2011
+* uncompress is now cyclic: allocs as much memory as needed, not just 1GB for all cases
+
 0.4.2: October 31, 2011
 * remove include of node_events.h (depricated)
 

@@ -15,10 +15,9 @@
 // zlib magic something
 #define WBITS 16+MAX_WBITS
 
-z_stream strmCompress;
-z_stream strmUncompress;
+#define CHUNK 1024*100
 
-// FIXME make uncompress cyclic so it eats not so much memory
+z_stream strmCompress;
 
 using namespace v8;
 using namespace node;
@@ -107,26 +106,66 @@ Handle<Value> uncompress(const Arguments &args) {
 		return Undefined();
 	}
 	
-	Local<Object> bufferIn=args[0]->ToObject();
-
-	size_t bytesUncompressed=999*1024*1024; // it's about max size that V8 supports
-	char *bufferOut=(char*) malloc(bytesUncompressed);
-
-	strmUncompress.next_in=(Bytef*) Buffer::Data(bufferIn);
-	strmUncompress.avail_in=Buffer::Length(bufferIn);
-	strmUncompress.next_out=(Bytef*) bufferOut;
-	strmUncompress.avail_out=bytesUncompressed;
+	z_stream strmUncompress;
 	
-	if (inflate(&strmUncompress, Z_FINISH) != Z_STREAM_END) {
-		inflateReset(&strmUncompress);
-		free(bufferOut);
+	strmUncompress.zalloc=Z_NULL;
+	strmUncompress.zfree=Z_NULL;
+	strmUncompress.opaque=Z_NULL;
+	strmUncompress.avail_in = 0;
+	strmUncompress.next_in = Z_NULL;
+
+	int rci = inflateInit2(&strmUncompress, WBITS);
+
+	if (rci != Z_OK) {
+		ThrowNodeError("zlib initialization error.");
 		return Undefined();
 	}
 	
-	bytesUncompressed=strmUncompress.total_out;
-	inflateReset(&strmUncompress);
+	Local<Object> bufferIn=args[0]->ToObject();
 
-	Buffer *BufferOut=Buffer::New(bufferOut, bytesUncompressed);
+	strmUncompress.next_in = (Bytef*) Buffer::Data(bufferIn);
+	strmUncompress.avail_in = Buffer::Length(bufferIn);
+
+	char *bufferOut = NULL;
+	uint32_t malloc_size=0;
+	uint32_t currentPosition=0;
+	
+	int ret; 
+	
+	do {
+    unsigned char tmp[CHUNK];
+		strmUncompress.avail_out = CHUNK;
+		strmUncompress.next_out = tmp;
+
+		ret = inflate(&strmUncompress, Z_NO_FLUSH);
+		assert(ret != Z_STREAM_ERROR); 
+		switch (ret) {
+			case Z_NEED_DICT:
+				ret = Z_DATA_ERROR;     /* and fall through */
+			case Z_DATA_ERROR:
+			case Z_MEM_ERROR:
+				(void)inflateEnd(&strmUncompress);
+				return Undefined();
+		}
+		
+		uint32_t have = CHUNK - strmUncompress.avail_out;
+		if (have>0) {
+			bufferOut = (char*) realloc(bufferOut, malloc_size+have);
+			malloc_size=malloc_size+have;
+		}
+		
+		memcpy(bufferOut+currentPosition, tmp, have);
+		currentPosition+=have;
+		
+	} while (strmUncompress.avail_out == 0 && ret != Z_STREAM_END);
+	
+	inflateEnd(&strmUncompress);
+
+	if (ret != Z_STREAM_END) { 
+		return Undefined();
+	}
+
+	Buffer *BufferOut=Buffer::New(bufferOut, malloc_size);
 	free(bufferOut);
 
 	HandleScope scope;
@@ -139,15 +178,10 @@ init (Handle<Object> target) {
 	strmCompress.zfree=Z_NULL;
 	strmCompress.opaque=Z_NULL;
 
-	strmUncompress.zalloc=Z_NULL;
-	strmUncompress.zfree=Z_NULL;
-	strmUncompress.opaque=Z_NULL;
-
 	int rcd = deflateInit2(&strmCompress, Z_DEFAULT_COMPRESSION, Z_DEFLATED,  
 		WBITS, 8L,  Z_DEFAULT_STRATEGY);
-	int rci = inflateInit2(&strmUncompress, WBITS);
 
-	if (rcd != Z_OK || rci != Z_OK) {
+	if (rcd != Z_OK) {
 		ThrowNodeError("zlib initialization error.");
 		return;
 	}
