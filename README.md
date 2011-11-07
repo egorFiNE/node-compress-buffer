@@ -5,15 +5,15 @@ A single-step Buffer compression library for Node.js.
 ## Synopsis
 
 ```javascript
-	compress = require('compress-buffer').compress;
-	uncompress = require('compress-buffer').uncompress;
-	
-	var rawData = fs.readFileSync("/etc/passwd");
+compress = require('compress-buffer').compress;
+uncompress = require('compress-buffer').uncompress;
 
-	var compressed   = compress(rawData);
-	var uncompressed = uncompress(compressed);
+var rawData = fs.readFileSync("/etc/passwd");
 
-	uncompressed == rawData // true!
+var compressed   = compress(rawData);
+var uncompressed = uncompress(compressed);
+
+uncompressed == rawData // true!
 ```
 
 ## Why? 
@@ -41,7 +41,7 @@ In version 0.4.1 I removed support for strings compression. It is not possible t
 Use the following instead: 
 
 ```javascript
-	var compressedBuffer = compress(new Buffer("my string"));
+var compressedBuffer = compress(new Buffer("my string"));
 ```
 
 ## License
