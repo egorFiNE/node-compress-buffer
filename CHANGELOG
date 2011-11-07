@@ -1,3 +1,6 @@
+0.5.1: November 7, 2011
+* uncompress memory management bug fixed
+
 0.5.0: November 5, 2011
 * uncompress is now cyclic: allocs as much memory as needed, not just 1GB for all cases
 

@@ -126,14 +126,14 @@ Handle<Value> uncompress(const Arguments &args) {
 	strmUncompress.next_in = (Bytef*) Buffer::Data(bufferIn);
 	strmUncompress.avail_in = Buffer::Length(bufferIn);
 
-	char *bufferOut = NULL;
+	Bytef  *bufferOut = NULL;
 	uint32_t malloc_size=0;
 	uint32_t currentPosition=0;
 	
 	int ret; 
 	
 	do {
-    unsigned char tmp[CHUNK];
+		Bytef *tmp = (Bytef*)malloc(CHUNK);
 		strmUncompress.avail_out = CHUNK;
 		strmUncompress.next_out = tmp;
 
@@ -145,27 +145,37 @@ Handle<Value> uncompress(const Arguments &args) {
 			case Z_DATA_ERROR:
 			case Z_MEM_ERROR:
 				(void)inflateEnd(&strmUncompress);
+				if (bufferOut!=NULL) { 
+					free(bufferOut);
+				} 
+				if (tmp!=NULL) {
+					free(tmp);
+				}
+				ThrowNodeError("zlib error");
 				return Undefined();
 		}
 		
 		uint32_t have = CHUNK - strmUncompress.avail_out;
 		if (have>0) {
-			bufferOut = (char*) realloc(bufferOut, malloc_size+have);
+			bufferOut = (Bytef *) realloc(bufferOut, malloc_size+have);
 			malloc_size=malloc_size+have;
 		}
 		
 		memcpy(bufferOut+currentPosition, tmp, have);
 		currentPosition+=have;
-		
+		free(tmp);
 	} while (strmUncompress.avail_out == 0 && ret != Z_STREAM_END);
 	
 	inflateEnd(&strmUncompress);
 
 	if (ret != Z_STREAM_END) { 
+		if (bufferOut!=NULL) { 
+			free(bufferOut);
+		} 
 		return Undefined();
 	}
 
-	Buffer *BufferOut=Buffer::New(bufferOut, malloc_size);
+	Buffer *BufferOut=Buffer::New((char *)bufferOut, malloc_size);
 	free(bufferOut);
 
 	HandleScope scope;
