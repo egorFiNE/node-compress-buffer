@@ -11,7 +11,7 @@ compile:
 	node-waf build
 
 test: build
-	@./node_modules/nodeunit/bin/nodeunit $(TESTS)
+	@nodeunit $(TESTS)
 
 clean:
 	rm -Rf build
