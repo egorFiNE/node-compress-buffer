@@ -1,6 +1,6 @@
 # node-compress-buffer 
 
-A single-step Buffer compression library for Node.js.
+Synchronous Buffer compression library for Node.js.
 
 ## Synopsis
 
@@ -26,6 +26,11 @@ For the sake of the KISS principle. Most of the time you don't need a streaming 
 
 <code>uncompress()</code> takes a single argument: the data (must be a <code>Buffer()</code>) and returns uncompressed <code>Buffer()</code> or <code>undefined</code> on error.
 
+Both functions could throw exceptions in the following cases:
+
+* zlib initialisation fails;
+* first argument is not a <code>Buffer</code> instance.
+
 ## Installation
 
 	npm install compress-buffer
@@ -34,16 +39,6 @@ or
 
 	npm install .
 
-## Upgrade notice
-
-In version 0.4.1 I removed support for strings compression. It is not possible to correctly determine the encoding of an input string and different encoding yields different results. So for the sake of consistency and reliability this was removed. 
-
-Use the following instead: 
-
-```javascript
-	var compressedBuffer = compress(new Buffer("my string"));
-```
-
 ## License
 
 See LICENSE file. Basically, it's a kind of "do-whatever-you-want-for-free" license.
@@ -51,11 +46,11 @@ See LICENSE file. Basically, it's a kind of "do-whatever-you-want-for-free" lice
 
 ## Thanks to 
 
-* A lot of thanks for important suggestions goes to Konstantin Käfer who implemented a nice similar module node-zlib (https://github.com/kkaefer/node-zlib) earlier than me.
+* A lot of thanks for important suggestions goes to Konstantin Käfer who implemented a nice similar module node-zlib (https://github.com/kkaefer/node-zlib) earlier than me;
 * Oleg Kertanov.
 
 
 ## Author
 
-Egor Egorov <me@egorfine.com>
+Egor Egorov <me@egorfine.com>.
 
