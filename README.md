@@ -2,23 +2,26 @@
 
 Synchronous Buffer compression library for Node.js.
 
+
 ## Synopsis
 
 ```javascript
-	compress = require('compress-buffer').compress;
-	uncompress = require('compress-buffer').uncompress;
-	
-	var rawData = fs.readFileSync("/etc/passwd");
+compress = require('compress-buffer').compress;
+uncompress = require('compress-buffer').uncompress;
 
-	var compressed   = compress(rawData);
-	var uncompressed = uncompress(compressed);
+var rawData = fs.readFileSync("/etc/passwd");
 
-	uncompressed == rawData // true!
+var compressed   = compress(rawData);
+var uncompressed = uncompress(compressed);
+
+uncompressed == rawData // true!
 ```
+
 
 ## Why? 
 
 For the sake of the KISS principle. Most of the time you don't need a streaming compression, you need to compress an existing and already complete data. 
+
 
 ## Options 
 
@@ -31,6 +34,7 @@ Both functions could throw exceptions in the following cases:
 * zlib initialisation fails;
 * first argument is not a <code>Buffer</code> instance.
 
+
 ## Installation
 
 	npm install compress-buffer
@@ -38,6 +42,7 @@ Both functions could throw exceptions in the following cases:
 or
 
 	npm install .
+
 
 ## License
 
