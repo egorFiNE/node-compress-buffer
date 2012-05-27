@@ -1,4 +1,4 @@
-/* node-compress-buffer (C) 2011 Egor Egorov <me@egorfine.com>  */
+/* node-compress-buffer (C) 2011, 2012 Egor Egorov <me@egorfine.com>  */
 
 #include <node.h>
 #include <node_buffer.h>
@@ -151,7 +151,6 @@ Handle<Value> uncompress(const Arguments &args) {
 				if (tmp!=NULL) {
 					free(tmp);
 				}
-				ThrowNodeError("zlib error");
 				return Undefined();
 		}
 		

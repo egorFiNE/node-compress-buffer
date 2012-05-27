@@ -75,11 +75,8 @@ exports['errors']= function(test) {
 	var compressed = compress(new Buffer(""));
 	test.ok(compressed.length>=0);
 	
-	try { 
-		uncompress(new Buffer(" sfsdcfgdfgsdgfdsgdgdsgdfgsdfgsdfgdfgfsfd "));
-	} catch (e) { 
-		test.ok(true);
-	}
+	var nothing = uncompress(new Buffer(" sfsdcfgdfgsdgfdsgdgdsgdfgsdfgsdfgdfgfsfd "));
+	test.ok(nothing==null);
 	
 	test.done();
 }
