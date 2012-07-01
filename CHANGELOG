@@ -1,3 +1,9 @@
+1.1.0: Jul 1, 2012
+* compatibility with node 0.8.0
+
+1.0.0: May 27, 2012
+* it's perfect now
+
 0.5.1: November 7, 2011
 * uncompress memory management bug fixed
 
