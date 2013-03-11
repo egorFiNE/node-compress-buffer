@@ -5,16 +5,16 @@ all: test
 build: clean configure compile
 
 configure:
-	node-waf configure
+	node-gyp configure
 
-compile:
-	node-waf build
+compile: configure
+	node-gyp build
 
 test: build
 	@nodeunit $(TESTS)
 
 clean:
-	rm -Rf build
+	node-gyp clean
 
 
 .PHONY: clean test build

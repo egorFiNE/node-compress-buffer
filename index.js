@@ -1,1 +1,1 @@
-module.exports = require(__dirname+'/build/Release/compress-buffer-bindings');
+module.exports = require('bindings')('compress_buffer_bindings');
