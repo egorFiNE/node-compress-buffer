@@ -15,9 +15,6 @@
     "node >=0.6.0"
   ],
   "main": "./index",
-  "scripts": {
-    "install": "make build"
-  },
   "devDependencies": {
     "nodeunit": ">=0.5.4"
   },
