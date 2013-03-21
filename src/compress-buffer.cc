@@ -198,3 +198,6 @@ init (Handle<Object> target) {
 	NODE_SET_METHOD(target, "compress", compress);
 	NODE_SET_METHOD(target, "uncompress", uncompress);
 }
+
+NODE_MODULE(compress_buffer_bindings, init);
+
