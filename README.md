@@ -53,6 +53,8 @@ See LICENSE file. Basically, it's a kind of "do-whatever-you-want-for-free" lice
 
 * A lot of thanks for important suggestions goes to Konstantin Käfer who implemented a nice similar module node-zlib (https://github.com/kkaefer/node-zlib) earlier than me;
 * Oleg Kertanov.
+* pccowboy
+* David Swift
 
 
 ## Author

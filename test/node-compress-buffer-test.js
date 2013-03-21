@@ -1,5 +1,3 @@
-/* node-compress-buffer (C) 2011 Egor Egorov <me@egorfine.com>  */
-
 util = require('util');
 fs = require('fs');
 crypto=require('crypto');

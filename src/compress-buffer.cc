@@ -1,5 +1,3 @@
-/* node-compress-buffer (C) 2011, 2012 Egor Egorov <me@egorfine.com>  */
-
 #include <node.h>
 #include <node_buffer.h>
 #include <string.h>
