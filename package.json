@@ -3,7 +3,7 @@
   "description": "Synchronous Buffer compression library for Node.js",
 	"homepage" : "http://egorfine.github.com/node-compress-buffer",
 	"bugs" : { "url" : "http://github.com/egorFiNE/node-compress-buffer/issues" },
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": "Egor Egorov",
   "repository": {
     "type": "git",
