@@ -1,3 +1,6 @@
+1.2.0: Mar 22, 2013
+* compatibility with node 0.10.0 (converted to GYP)
+
 1.1.0: Jul 1, 2012
 * compatibility with node 0.8.0
 
