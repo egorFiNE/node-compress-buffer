@@ -1,6 +1,6 @@
 # node-compress-buffer 
 
-Synchronous Buffer compression library for Node.js.
+Synchronous zlib Buffer compression library for Node.js.
 
 
 ## Synopsis
