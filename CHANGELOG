@@ -1,3 +1,6 @@
+1.2.1: Nov 3, 2013
+* bundled zlib in order to improve compatibility with systems with no zlib installed (windows)
+
 1.2.0: Mar 22, 2013
 * compatibility with node 0.10.0 (converted to GYP)
 
