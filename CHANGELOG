@@ -1,3 +1,6 @@
+1.2.2: May 8, 2014
+* binding.gyp instead of bindings.gyp, also fix lib exporting if buildtype=debug, credits anru@github
+
 1.2.1: Nov 3, 2013
 * bundled zlib in order to improve compatibility with systems with no zlib installed (windows)
 
