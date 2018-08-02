@@ -1,4 +1,8 @@
-# node-compress-buffer 
+# Deprecated a long time ago
+
+This project has been created when no compression library existed for Node.js. This isn't the case for years. This repository is mainly kept for backward compatibility with some of the very ancient software of mine. 
+
+## node-compress-buffer 
 
 Synchronous zlib Buffer compression library for Node.js.
 
